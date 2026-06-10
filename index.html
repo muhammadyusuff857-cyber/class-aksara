@@ -518,7 +518,7 @@ window.pickVote = function(el) {
 };
 
 window.submitVote = async function() {
-  const sel = document.querySelector('.v-opt.picked');
+  const sel = document.querySelector('.vopt.picked');
   if (!sel||!voteId) return;
   const idx = parseInt(sel.dataset.idx);
   const ref = doc(db,'votes',voteId);
