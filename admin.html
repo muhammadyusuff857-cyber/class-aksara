@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Class A Akuntansi '25</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #0d1b3e;
+      --sidebar:  #081227;
+      --surface:  rgba(255,255,255,0.06);
+      --card:     rgba(255,255,255,0.08);
+      --border:   rgba(255,255,255,0.12);
+      --border2:  rgba(59,114,245,0.4);
+      --blue:     #1e4fc2;
+      --blue2:    #3b72f5;
+      --accent:   #f0b84a;
+      --red:      #e03a28;
+      --green:    #22c55e;
+      --text:     #ffffff;
+      --muted:    rgba(255,255,255,0.45);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+
+    /* BG */
+    body::before{
+      content:'';position:fixed;inset:0;z-index:0;
+      background:
+        linear-gradient(180deg,rgba(13,27,62,0.92) 0%,rgba(8,18,39,0.97) 100%),
+        url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1920&q=80') center/cover no-repeat;
+    }
+
+    /* SIDEBAR */
+    .sidebar{position:fixed;top:0;left:0;bottom:0;width:230px;z-index:100;background:rgba(8,18,39,0.9);backdrop-filter:blur(20px);border-right:1px solid var(--border);display:flex;flex-direction:column}
+    .sb-brand{padding:1.4rem 1.25rem;border-bottom:1px solid var(--border)}
+    .sb-logo{display:flex;align-items:center;gap:.65rem}
+    .sb-owl{width:34px;height:34px;border-radius:8px;background:var(--blue);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+    .sb-name{font-family:'Montserrat',sans-serif;font-weight:800;font-size:.90rem;letter-spacing:.04em}
+    .sb-name span{color:var(--accent)}
+    .sb-sub{font-size:.6rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:.1rem}
+    .sb-nav{padding:.75rem 0;flex:1;overflow-y:auto}
+    .sb-label{font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:.5rem 1.25rem;margin-top:.5rem}
+    .sb-item{display:flex;align-items:center;gap:.7rem;padding:.6rem 1.25rem;cursor:pointer;color:var(--muted);font-size:.83rem;font-weight:500;transition:all .2s;border-left:2px solid transparent;text-decoration:none}
+    .sb-item:hover{color:var(--text);background:rgba(255,255,255,.05)}
+    .sb-item.active{color:var(--text);background:rgba(30,79,194,.25);border-left-color:var(--blue2)}
+    .sb-icon{font-size:.95rem;width:18px;text-align:center}
+    .sb-footer{padding:1rem 1.25rem;border-top:1px solid var(--border)}
+    .sb-user{display:flex;align-items:center;gap:.65rem;margin-bottom:.7rem}
+    .sb-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--red));display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0}
+    .sb-uname{font-size:.78rem;font-weight:600}
+    .sb-urole{font-size:.65rem;color:var(--muted)}
+    .sb-logout{width:100%;padding:.5rem;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Inter',sans-serif;font-size:.75rem;cursor:pointer;transition:all .2s}
+    .sb-logout:hover{border-color:rgba(224,58,40,.5);color:#fca5a5}
+
+    /* MAIN */
+    .main{margin-left:230px;flex:1;display:flex;flex-direction:column;min-height:100vh;position:relative;z-index:1}
+    .topbar{padding:.85rem 2rem;background:rgba(8,18,39,0.8);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+    .topbar h1{font-family:'Montserrat',sans-serif;font-size:1.3rem;font-weight:800;letter-spacing:.02em}
+    .back-link{font-size:.75rem;color:var(--muted);text-decoration:none;padding:.35rem .8rem;border:1px solid var(--border);border-radius:5px;transition:all .2s}
+    .back-link:hover{border-color:var(--border2);color:var(--text)}
+    .content{padding:1.75rem 2rem;flex:1}
+
+    /* LOGIN */
+    .login-page{position:fixed;inset:0;z-index:900;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(8,18,39,0.97)}
+    .login-page::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1920&q=80') center/cover no-repeat;opacity:.15}
+    .lcard{position:relative;z-index:1;width:100%;max-width:360px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(24px);border-radius:20px;padding:2.25rem 2rem}
+    .lhead{text-align:center;margin-bottom:1.75rem}
+    .l-owl{width:64px;height:64px;border-radius:16px;background:var(--blue);border:2px solid rgba(59,114,245,.4);margin:0 auto .9rem;display:flex;align-items:center;justify-content:center;font-size:2.2rem;box-shadow:0 0 30px rgba(30,79,194,.4)}
+    .lhead h2{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.4rem;letter-spacing:.02em}
+    .lhead p{font-size:.75rem;color:var(--muted);margin-top:.25rem}
+    .fg{margin-bottom:1rem}
+    .fg label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.4rem}
+    .fg input{width:100%;padding:.65rem .9rem;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s}
+    .fg input:focus{border-color:var(--blue2)}
+    .l-err{background:rgba(224,58,40,.15);border:1px solid rgba(224,58,40,.3);color:#fca5a5;padding:.6rem .9rem;border-radius:7px;font-size:.78rem;margin-bottom:.9rem;display:none}
+    .l-btn{width:100%;padding:.75rem;background:var(--blue);color:var(--text);font-family:'Inter',sans-serif;font-weight:700;font-size:.88rem;border:none;border-radius:8px;cursor:pointer;transition:background .2s,transform .2s;margin-top:.25rem}
+    .l-btn:hover{background:var(--blue2);transform:translateY(-1px)}
+
+    /* STATS */
+    .stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.85rem;margin-bottom:1.75rem}
+    .sc{background:rgba(255,255,255,.07);border:1px solid var(--border);backdrop-filter:blur(12px);border-radius:12px;padding:1.1rem 1.25rem;display:flex;align-items:center;gap:.9rem}
+    .sc-ico{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+    .sc h3{font-family:'Montserrat',sans-serif;font-size:1.85rem;font-weight:800;line-height:1;color:var(--text)}
+    .sc p{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
+
+    /* TABLE CARD */
+    .tc{background:rgba(255,255,255,.06);border:1px solid var(--border);backdrop-filter:blur(16px);border-radius:14px;overflow:hidden;margin-bottom:1.5rem}
+    .tc-head{padding:1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem}
+    .tc-head h2{font-size:.95rem;font-weight:700}
+    .add-btn{background:var(--blue);color:var(--text);font-weight:600;font-size:.75rem;letter-spacing:.04em;padding:.45rem 1rem;border-radius:6px;border:none;cursor:pointer;transition:background .15s,transform .15s}
+    .add-btn:hover{background:var(--blue2);transform:translateY(-1px)}
+    .dt{width:100%;border-collapse:collapse}
+    .dt th{text-align:left;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:.75rem 1.25rem;border-bottom:1px solid var(--border);font-weight:600}
+    .dt td{padding:.8rem 1.25rem;font-size:.82rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle}
+    .dt tr:last-child td{border-bottom:none}
+    .dt tbody tr:hover td{background:rgba(255,255,255,.03)}
+
+    /* BADGES */
+    .badge{display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:.18rem .5rem;border-radius:4px}
+    .b-ketua{background:rgba(240,184,74,.2);color:var(--accent)}
+    .b-sek{background:rgba(59,114,245,.2);color:#93bbf8}
+    .b-bend{background:rgba(34,197,94,.15);color:#86efac}
+    .b-ang{background:rgba(255,255,255,.07);color:var(--muted)}
+    .b-penting{background:rgba(224,58,40,.2);color:#fca5a5}
+    .b-info{background:rgba(59,114,245,.2);color:#93bbf8}
+    .b-acara{background:rgba(240,184,74,.2);color:var(--accent)}
+    .b-on{background:rgba(34,197,94,.15);color:#86efac}
+    .b-off{background:rgba(255,255,255,.07);color:var(--muted)}
+    .b-day{background:rgba(59,114,245,.2);color:#93bbf8}
+
+    /* ACTIONS */
+    .acts{display:flex;gap:.35rem}
+    .ab{width:28px;height:28px;border-radius:6px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.75rem;transition:opacity .2s}
+    .ab:hover{opacity:.75}
+    .ab-e{background:rgba(59,114,245,.2);color:#93bbf8}
+    .ab-d{background:rgba(224,58,40,.2);color:#fca5a5}
+    .ab-t{background:rgba(34,197,94,.15);color:#86efac}
+
+    /* MODAL */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);z-index:800;display:none;align-items:center;justify-content:center;padding:1rem}
+    .overlay.open{display:flex}
+    .modal{background:rgba(13,27,62,.95);border:1px solid var(--border);backdrop-filter:blur(24px);border-radius:16px;padding:1.75rem;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+    .modal h3{font-size:1rem;font-weight:700;margin-bottom:1.25rem;padding-bottom:.65rem;border-bottom:1px solid var(--border)}
+    .fg select,.fg textarea{width:100%;padding:.65rem .9rem;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s}
+    .fg select:focus,.fg textarea:focus{border-color:var(--blue2)}
+    .fg textarea{resize:vertical;min-height:72px}
+    .m-acts{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.4rem}
+    .m-cancel{padding:.55rem 1.25rem;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Inter',sans-serif;font-size:.82rem;cursor:pointer;transition:all .2s}
+    .m-cancel:hover{border-color:rgba(255,255,255,.25);color:var(--text)}
+    .m-save{padding:.55rem 1.25rem;background:var(--blue);color:var(--text);font-weight:700;font-size:.82rem;border:none;border-radius:6px;cursor:pointer;transition:background .15s}
+    .m-save:hover{background:var(--blue2)}
+
+    /* VOTE OPTS */
+    .opt-row{display:flex;gap:.4rem;margin-bottom:.45rem}
+    .opt-row input{flex:1;padding:.55rem .8rem;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:.82rem;outline:none}
+    .opt-row input:focus{border-color:var(--blue2)}
+    .rm-opt{width:26px;height:26px;background:rgba(224,58,40,.2);color:#fca5a5;border:none;border-radius:5px;cursor:pointer;font-size:.85rem}
+    .add-opt{font-size:.75rem;color:#93bbf8;background:transparent;border:1px dashed rgba(59,114,245,.35);border-radius:5px;padding:.35rem .8rem;cursor:pointer;width:100%;margin-top:.2rem;transition:background .2s}
+    .add-opt:hover{background:rgba(59,114,245,.1)}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:1.25rem;right:1.25rem;background:rgba(13,27,62,.95);border:1px solid var(--border);backdrop-filter:blur(16px);border-radius:10px;padding:.75rem 1.1rem;font-size:.82rem;z-index:1000;transform:translateY(16px);opacity:0;transition:all .3s;pointer-events:none}
+    .toast.show{transform:translateY(0);opacity:1}
+    .toast.ok{border-color:rgba(34,197,94,.4);color:#86efac}
+    .toast.err{border-color:rgba(224,58,40,.4);color:#fca5a5}
+
+    .loading-state{display:flex;align-items:center;gap:.45rem;color:var(--muted);font-size:.8rem;padding:1.25rem}
+    .spin{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--blue2);border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .empty-msg{color:var(--muted);font-size:.82rem;font-style:italic;padding:1.25rem}
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-page" id="lpage">
+  <div class="lcard">
+    <div class="lhead">
+      <img src="logo-aksara.png" style="height:44px">
+      <p>CLASS A/C'25</p>
+    </div>
+    <div class="l-err" id="lerr">Email atau password salah.</div>
+    <div class="fg"><label>Email</label><input type="email" id="lemail" placeholder="admin@email.com"/></div>
+    <div class="fg"><label>Password</label><input type="password" id="lpass" placeholder="••••••••"/></div>
+    <button class="l-btn" onclick="doLogin()">LOGIN</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dboard" style="display:none;width:100%">
+
+  <div class="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo">
+        <img src="logo-aksara.png" style="height:22px">
+        <div>
+          <div class="sb-name">CLASS A/C <span>'25</span></div>
+          <div class="sb-sub">Admin</div>
+        </div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-label">Menu</div>
+      <a class="sb-item active" onclick="go('dashboard')" href="#"><span class="sb-icon">📊</span>Dashboard</a>
+      <a class="sb-item" onclick="go('members')" href="#"><span class="sb-icon">👥</span>Anggota</a>
+      <a class="sb-item" onclick="go('schedules')" href="#"><span class="sb-icon">📅</span>Jadwal</a>
+      <a class="sb-item" onclick="go('announcements')" href="#"><span class="sb-icon">📢</span>Pengumuman</a>
+      <a class="sb-item" onclick="go('gallery')" href="#"><span class="sb-icon">🖼</span>Galeri</a>
+      <a class="sb-item" onclick="go('documents')" href="#"><span class="sb-icon">📁</span>Dokumen</a>
+      <a class="sb-item" onclick="go('voting')" href="#"><span class="sb-icon">🗳</span>Voting</a>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar" id="uinit">A</div>
+        <div><div class="sb-uname" id="uemail">Admin</div><div class="sb-urole">Administrator</div></div>
+      </div>
+      <button class="sb-logout" onclick="doLogout()">Keluar</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <h1 id="ptitle">Dashboard</h1>
+      <a href="index.html" class="back-link">← Lihat Website</a>
+    </div>
+    <div class="content" id="mcontent"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="mtitle">Form</h3>
+    <div id="mbody"></div>
+    <div class="m-acts">
+      <button class="m-cancel" onclick="closeM()">Batal</button>
+      <button class="m-save" onclick="saveM()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, orderBy, query, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyCews7iQRZVvGkQhCEKf1ZE4Qidv8mDzyk",
+  authDomain:"class-akuntansi.firebaseapp.com",
+  projectId:"class-akuntansi",
+  storageBucket:"class-akuntansi.firebasestorage.app",
+  messagingSenderId:"831610923576",
+  appId:"1:831610923576:web:59619baf2d9fc619e4d4cd"
+});
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+/* AUTH */
+window.doLogin = async () => {
+  const e=document.getElementById('lemail').value.trim(), p=document.getElementById('lpass').value;
+  document.getElementById('lerr').style.display='none';
+  try { await signInWithEmailAndPassword(auth,e,p); }
+  catch { document.getElementById('lerr').style.display='block'; }
+};
+window.doLogout = () => signOut(auth);
+
+onAuthStateChanged(auth, u => {
+  if (u) {
+    document.getElementById('lpage').style.display='none';
+    document.getElementById('dboard').style.display='flex';
+    document.getElementById('uemail').textContent=u.email;
+    document.getElementById('uinit').textContent=u.email[0].toUpperCase();
+    go('dashboard');
+  } else {
+    document.getElementById('lpage').style.display='flex';
+    document.getElementById('dboard').style.display='none';
+  }
+});
+
+/* TOAST */
+function toast(msg,type='ok'){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show '+type;
+  setTimeout(()=>el.className='toast',2800);
+}
+
+/* MODAL */
+let mCb=null;
+window.openM=(title,body,cb)=>{
+  document.getElementById('mtitle').textContent=title;
+  document.getElementById('mbody').innerHTML=body;
+  mCb=cb;
+  document.getElementById('overlay').classList.add('open');
+};
+window.closeM=()=>{ document.getElementById('overlay').classList.remove('open'); mCb=null; };
+window.saveM=()=>{ if(mCb) mCb(); };
+document.getElementById('overlay').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeM(); });
+
+/* ROUTING */
+const titles={dashboard:'Dashboard',members:'Anggota',schedules:'Jadwal',announcements:'Pengumuman',gallery:'Galeri',documents:'Dokumen',voting:'Voting'};
+window.go=page=>{
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i=>{ if(i.getAttribute('onclick')?.includes(`'${page}'`)) i.classList.add('active'); });
+  document.getElementById('ptitle').textContent=titles[page]||page;
+  ({dashboard:rDashboard,members:rMembers,schedules:rSchedules,announcements:rAnn,gallery:rGallery,documents:rDocs,voting:rVoting})[page]?.();
+};
+
+/* DASHBOARD */
+async function rDashboard(){
+  document.getElementById('mcontent').innerHTML='<div class="loading-state"><div class="spin"></div> Memuat...</div>';
+  const cols=['members','schedules','announcements','documents','votes'];
+  const counts={};
+  await Promise.all(cols.map(async c=>{ const s=await getDocs(collection(db,c)); counts[c]=s.size; }));
+  document.getElementById('mcontent').innerHTML=`
+    <div class="stats-row">
+      <div class="sc"><div class="sc-ico" style="background:rgba(59,114,245,.15)">👥</div><div><h3>${counts.members}</h3><p>Anggota</p></div></div>
+      <div class="sc"><div class="sc-ico" style="background:rgba(240,184,74,.15)">📅</div><div><h3>${counts.schedules}</h3><p>Jadwal</p></div></div>
+      <div class="sc"><div class="sc-ico" style="background:rgba(224,58,40,.15)">📢</div><div><h3>${counts.announcements}</h3><p>Pengumuman</p></div></div>
+      <div class="sc"><div class="sc-ico" style="background:rgba(34,197,94,.12)">📁</div><div><h3>${counts.documents}</h3><p>Dokumen</p></div></div>
+      <div class="sc"><div class="sc-ico" style="background:rgba(167,139,250,.15)">🗳</div><div><h3>${counts.votes}</h3><p>Voting</p></div></div>
+    </div>
+    <p style="color:rgba(255,255,255,.45);font-size:.85rem;line-height:1.6">Selamat datang di Admin Panel Class A/C Akuntansi Terapan '25.<br>Gunakan menu di kiri untuk mengelola data kelas.</p>`;
+}
+
+/* MEMBERS */
+async function rMembers(){
+  document.getElementById('mcontent').innerHTML='<div class="loading-state"><div class="spin"></div> Memuat...</div>';
+  const snap=await getDocs(collection(db,'members'));
+  const rows=[]; snap.forEach(d=>rows.push({id:d.id,...d.data()}));
+  const ord=['Ketua','Sekretaris','Bendahara'];
+  rows.sort((a,b)=>{ const ai=ord.indexOf(a.role),bi=ord.indexOf(b.role); if(ai!==-1&&bi===-1)return -1; if(ai===-1&&bi!==-1)return 1; return 0; });
+  const rb=r=>({Ketua:'b-ketua',Sekretaris:'b-sek',Bendahara:'b-bend'}[r]||'b-ang');
+  document.getElementById('mcontent').innerHTML=`
+    <div class="tc">
+      <div class="tc-head"><h2>Anggota (${rows.length})</h2><button class="add-btn" onclick="addMember()">+ Tambah</button></div>
+      <table class="dt">
+        <thead><tr><th>#</th><th>Nama</th><th>NIM</th><th>Jabatan</th><th>Aksi</th></tr></thead>
+        <tbody>${rows.length?rows.map((m,i)=>`<tr>
+          <td style="color:var(--muted)">${i+1}</td>
+          <td style="font-weight:600">${m.name}</td>
+          <td style="color:var(--muted)">${m.nim||'—'}</td>
+          <td><span class="badge ${rb(m.role)}">${m.role||'Anggota'}</span></td>
+          <td><div class="acts">
+            <button class="ab ab-e" onclick='editMember(${JSON.stringify({id:m.id,name:m.name,nim:m.nim||"",role:m.role||""})})'>✏️</button>
+            <button class="ab ab-d" onclick="delMember('${m.id}')">🗑</button>
+          </div></td></tr>`).join(''):'<tr><td colspan="5" class="empty-msg">Belum ada anggota.</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+const mForm=(d={})=>`
+  <div class="fg"><label>Nama</label><input id="fn" type="text" value="${(d.name||'').replace(/"/g,'&quot;')}" placeholder="Nama lengkap"/></div>
+  <div class="fg"><label>NIM</label><input id="fni" type="text" value="${d.nim||''}" placeholder="NIM"/></div>
+  <div class="fg"><label>Jabatan</label><select id="fr">
+    <option value="Anggota" ${(!d.role||d.role==='Anggota')?'selected':''}>Anggota</option>
+    <option value="Ketua" ${d.role==='Ketua'?'selected':''}>Ketua</option>
+    <option value="Sekretaris" ${d.role==='Sekretaris'?'selected':''}>Sekretaris</option>
+    <option value="Bendahara" ${d.role==='Bendahara'?'selected':''}>Bendahara</option>
+  </select></div>`;
+
+window.addMember=()=>openM('Tambah Anggota',mForm(),async()=>{
+  const name=document.getElementById('fn').value.trim(),nim=document.getElementById('fni').value.trim(),role=document.getElementById('fr').value;
+  if(!name){toast('Nama wajib diisi','err');return;}
+  await addDoc(collection(db,'members'),{name,nim,role,createdAt:serverTimestamp()});
+  closeM(); toast('Anggota ditambahkan'); rMembers();
+});
+
+window.editMember=m=>openM('Edit Anggota',mForm(m),async()=>{
+  const name=document.getElementById('fn').value.trim(),nim=document.getElementById('fni').value.trim(),role=document.getElementById('fr').value;
+  if(!name){toast('Nama wajib diisi','err');return;}
+  await updateDoc(doc(db,'members',m.id),{name,nim,role});
+  closeM(); toast('Anggota diperbarui'); rMembers();
+});
+
+window.delMember=async id=>{
+  if(!confirm('Hapus anggota ini?'))return;
+  await deleteDoc(doc(db,'members',id)); toast('Dihapus'); rMembers();
+};
+
+/* SCHEDULES */
+const DAYS=['Senin','Selasa','Rabu','Kamis','Jumat'];
+async function rSchedules(){
+  document.getElementById('mcontent').innerHTML='<div class="loading-state"><div class="spin"></div> Memuat...</div>';
+  const snap=await getDocs(collection(db,'schedules'));
+  const rows=[]; snap.forEach(d=>rows.push({id:d.id,...d.data()}));
+  rows.sort((a,b)=>{ const di=DAYS.indexOf(a.day)-DAYS.indexOf(b.day); return di||a.time.localeCompare(b.time); });
+  document.getElementById('mcontent').innerHTML=`
+    <div class="tc">
+      <div class="tc-head"><h2>Jadwal (${rows.length})</h2><button class="add-btn" onclick="addSched()">+ Tambah</button></div>
+      <table class="dt">
+        <thead><tr><th>Hari</th><th>Waktu</th><th>Mata Kuliah</th><th>Dosen</th><th>Ruang</th><th>Aksi</th></tr></thead>
+        <tbody>${rows.length?rows.map(s=>`<tr>
+          <td><span class="badge b-day">${s.day}</span></td>
+          <td style="color:var(--muted);font-size:.78rem">${s.time}</td>
+          <td style="font-weight:600">${s.subject}</td>
+          <td style="color:var(--muted);font-size:.78rem">${s.lecturer||'—'}</td>
+          <td style="color:var(--muted);font-size:.78rem">${s.room||'—'}</td>
+          <td><div class="acts">
+            <button class="ab ab-e" onclick='editSched(${JSON.stringify({id:s.id,day:s.day,time:s.time,subject:s.subject,lecturer:s.lecturer||"",room:s.room||""})})'>✏️</button>
+            <button class="ab ab-d" onclick="delSched('${s.id}')">🗑</button>
+          </div></td></tr>`).join(''):'<tr><td colspan="6" class="empty-msg">Belum ada jadwal.</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+const sForm=(d={})=>`
+  <div class="fg"><label>Hari</label><select id="fd">${DAYS.map(day=>`<option value="${day}" ${d.day===day?'selected':''}>${day}</option>`).join('')}</select></div>
+  <div class="fg"><label>Waktu</label><input id="ft" type="text" value="${d.time||''}" placeholder="07.30–09.10"/></div>
+  <div class="fg"><label>Mata Kuliah</label><input id="fs" type="text" value="${(d.subject||'').replace(/"/g,'&quot;')}" placeholder="Nama mata kuliah"/></div>
+  <div class="fg"><label>Dosen</label><input id="fl" type="text" value="${d.lecturer||''}" placeholder="Nama dosen"/></div>
+  <div class="fg"><label>Ruang</label><input id="fr2" type="text" value="${d.room||''}" placeholder="R. 201 Gd. A"/></div>`;
+
+window.addSched=()=>openM('Tambah Jadwal',sForm(),async()=>{
+  const day=document.getElementById('fd').value,time=document.getElementById('ft').value.trim(),subject=document.getElementById('fs').value.trim(),lecturer=document.getElementById('fl').value.trim(),room=document.getElementById('fr2').value.trim();
+  if(!time||!subject){toast('Waktu & MK wajib diisi','err');return;}
+  await addDoc(collection(db,'schedules'),{day,time,subject,lecturer,room});
+  closeM(); toast('Jadwal ditambahkan'); rSchedules();
+});
+
+window.editSched=s=>openM('Edit Jadwal',sForm(s),async()=>{
+  const day=document.getElementById('fd').value,time=document.getElementById('ft').value.trim(),subject=document.getElementById('fs').value.trim(),lecturer=document.getElementById('fl').value.trim(),room=document.getElementById('fr2').value.trim();
+  if(!time||!subject){toast('Waktu & MK wajib diisi','err');return;}
+  await updateDoc(doc(db,'schedules',s.id),{day,time,subject,lecturer,room});
+  closeM(); toast('Jadwal diperbarui'); rSchedules();
+});
+
+window.delSched=async id=>{ if(!confirm('Hapus jadwal?'))return; await deleteDoc(doc(db,'schedules',id)); toast('Dihapus'); rSchedules(); };
+
+/* ANNOUNCEMENTS */
+async function rAnn(){
+  document.getElementById('mcontent').innerHTML='<div class="loading-state"><div class="spin"></div> Memuat...</div>';
+  const snap=await getDocs(query(collection(db,'announcements'),orderBy('createdAt','desc')));
+  const rows=[]; snap.forEach(d=>rows.push({id:d.id,...d.data()}));
+  document.getElementById('mcontent').innerHTML=`
+    <div class="tc">
+      <div class="tc-head"><h2>Pengumuman (${rows.length})</h2><button class="add-btn" onclick="addAnn()">+ Tambah</button></div>
+      <table class="dt">
+        <thead><tr><th>Tipe</th><th>Judul</th><th>Oleh</th><th>Tanggal</th><th>Aksi</th></tr></thead>
+        <tbody>${rows.length?rows.map(a=>{
+          const bmap={penting:'b-penting',info:'b-info',acara:'b-acara'};
+          const dt=a.createdAt?.toDate?a.createdAt.toDate().toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}):'';
+          return `<tr>
+            <td><span class="badge ${bmap[a.type]||'b-info'}">${a.type||'info'}</span></td>
+            <td style="font-weight:600;max-width:200px">${a.title}</td>
+            <td style="color:var(--muted);font-size:.78rem">${a.author||'—'}</td>
+            <td style="color:var(--muted);font-size:.75rem">${dt}</td>
+            <td><div class="acts">
+              <button class="ab ab-e" onclick='editAnn(${JSON.stringify({id:a.id,title:a.title,content:a.content||"",type:a.type||"info",author:a.author||""})})'>✏️</button>
+              <button class="ab ab-d" onclick="delAnn('${a.id}')">🗑</button>
+            </div></td></tr>`;}).join(''):'<tr><td colspan="5" class="empty-msg">Belum ada pengumuman.</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+const aForm=(d={})=>`
+  <div class="fg"><label>Tipe</label><select id="fat">
+    <option value="info" ${(!d.type||d.type==='info')?'selected':''}>ℹ Info</option>
+    <option value="penting" ${d.type==='penting'?'selected':''}>⚠ Penting</option>
+    <option value="acara" ${d.type==='acara'?'selected':''}>🎉 Acara</option>
+  </select></div>
+  <div class="fg"><label>Judul</label><input id="fat2" type="text" value="${(d.title||'').replace(/"/g,'&quot;')}" placeholder="Judul pengumuman"/></div>
+  <div class="fg"><label>Isi</label><textarea id="fac">${d.content||''}</textarea></div>
+  <div class="fg"><label>Oleh</label><input id="faa" type="text" value="${d.author||''}" placeholder="Admin Kelas"/></div>`;
+
+window.addAnn=()=>openM('Tambah Pengumuman',aForm(),async()=>{
+  const type=document.getElementById('fat').value,title=document.getElementById('fat2').value.trim(),content=document.getElementById('fac').value.trim(),author=document.getElementById('faa').value.trim();
+  if(!title){toast('Judul wajib diisi','err');return;}
+  await addDoc(collection(db,'announcements'),{type,title,content,author,createdAt:serverTimestamp()});
+  closeM(); toast('Pengumuman ditambahkan'); rAnn();
+});
+
+window.editAnn=a=>openM('Edit Pengumuman',aForm(a),async()=>{
+  const type=document.getElementById('fat').value,title=document.getElementById('fat2').value.trim(),content=document.getElementById('fac').value.trim(),author=document.getElementById('faa').value.trim();
+  if(!title){toast('Judul wajib diisi','err');return;}
+  await updateDoc(doc(db,'announcements',a.id),{type,title,content,author});
+  closeM(); toast('Diperbarui'); rAnn();
+});
+
+window.delAnn=async id=>{ if(!confirm('Hapus pengumuman?'))return; await deleteDoc(doc(db,'announcements',id)); toast('Dihapus'); rAnn(); };
+
+/* DOCUMENTS */
+async function rDocs(){
+  document.getElementById('mcontent').innerHTML='<div class="loading-state"><div class="spin"></div> Memuat...</div>';
+  const snap=await getDocs(query(collection(db,'documents'),orderBy('createdAt','desc')));
+  const rows=[]; snap.forEach(d=>rows.push({id:d.id,...d.data()}));
+  document.getElementById('mcontent').innerHTML=`
+    <div class="tc">
+      <div class="tc-head"><h2>Dokumen (${rows.length})</h2><button class="add-btn" onclick="addDoc2()">+ Tambah</button></div>
+      <table class="dt">
+        <thead><tr><th>Tipe</th><th>Judul</th><th>Deskripsi</th><th>Link</th><th>Aksi</th></tr></thead>
+        <tbody>${rows.length?rows.map(d=>`<tr>
+          <td><span class="badge b-info">${d.type||'FILE'}</span></td>
+          <td style="font-weight:600">${d.title}</td>
+          <td style="color:var(--muted);font-size:.78rem;max-width:180px">${d.description||'—'}</td>
+          <td style="font-size:.75rem">${d.url?`<a href="${d.url}" target="_blank" style="color:#93bbf8">Buka ↗</a>`:'<span style="color:var(--muted)">—</span>'}</td>
+          <td><div class="acts">
+            <button class="ab ab-e" onclick='editDoc2(${JSON.stringify({id:d.id,title:d.title,description:d.description||"",type:d.type||"PDF",url:d.url||""})})'>✏️</button>
+            <button class="ab ab-d" onclick="delDoc2('${d.id}')">🗑</button>
+          </div></td></tr>`).join(''):'<tr><td colspan="5" class="empty-msg">Belum ada dokumen.</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+const dForm=(d={})=>`
+  <div class="fg"><label>Judul</label><input id="fdt" type="text" value="${(d.title||'').replace(/"/g,'&quot;')}" placeholder="Judul dokumen"/></div>
+  <div class="fg"><label>Deskripsi</label><textarea id="fdd">${d.description||''}</textarea></div>
+  <div class="fg"><label>Tipe</label><select id="fdy">
+    <option value="PDF" ${(!d.type||d.type==='PDF')?'selected':''}>PDF</option>
+    <option value="DOCX" ${d.type==='DOCX'?'selected':''}>DOCX</option>
+    <option value="XLSX" ${d.type==='XLSX'?'selected':''}>XLSX</option>
+    <option value="LAINNYA" ${d.type==='LAINNYA'?'selected':''}>Lainnya</option>
+  </select></div>
+  <div class="fg"><label>URL / Link</label><input id="fdu" type="text" value="${d.url||''}" placeholder="https://drive.google.com/..."/></div>`;
+
+window.addDoc2=()=>openM('Tambah Dokumen',dForm(),async()=>{
+  const title=document.getElementById('fdt').value.trim(),description=document.getElementById('fdd').value.trim(),type=document.getElementById('fdy').value,url=document.getElementById('fdu').value.trim();
+  if(!title){toast('Judul wajib diisi','err');return;}
+  await addDoc(collection(db,'documents'),{title,description,type,url,createdAt:serverTimestamp()});
+  closeM(); toast('Dokumen ditambahkan'); rDocs();
+});
+
+window.editDoc2=d=>openM('Edit Dokumen',dForm(d),async()=>{
+  const title=document.getElementById('fdt').value.trim(),description=document.getElementById('fdd').value.trim(),type=document.getElementById('fdy').value,url=document.getElementById('fdu').value.trim();
+  if(!title){toast('Judul wajib diisi','err');return;}
+  await updateDoc(doc(db,'documents',d.id),{title,description,type,url});
+  closeM(); toast('Diperbarui'); rDocs();
+});
+
+window.delDoc2=async id=>{ if(!confirm('Hapus dokumen?'))return; await deleteDoc(doc(db,'documents',id)); toast('Dihapus'); rDocs(); };
+
+/* VOTING */
+async function rVoting(){
+  document.getElementById('mcontent').innerHTML='<div class="loading-state"><div class="spin"></div> Memuat...</div>';
+  const snap=await getDocs(query(collection(db,'votes'),orderBy('createdAt','desc')));
+  const rows=[]; snap.forEach(d=>rows.push({id:d.id,...d.data()}));
+  document.getElementById('mcontent').innerHTML=`
+    <div class="tc">
+      <div class="tc-head"><h2>Voting (${rows.length})</h2><button class="add-btn" onclick="addVote()">+ Buat Voting</button></div>
+      <table class="dt">
+        <thead><tr><th>Judul</th><th>Opsi</th><th>Suara</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody>${rows.length?rows.map(v=>{
+          const total=(v.options||[]).reduce((s,o)=>s+(o.votes||0),0);
+          return `<tr>
+            <td style="font-weight:600;max-width:180px">${v.title}</td>
+            <td style="color:var(--muted);font-size:.78rem">${(v.options||[]).map(o=>o.label).join(', ')}</td>
+            <td style="color:#93bbf8;font-weight:700">${total}</td>
+            <td><span class="badge ${v.active?'b-on':'b-off'}">${v.active?'Aktif':'Nonaktif'}</span></td>
+            <td><div class="acts">
+              <button class="ab ab-t" onclick="toggleVote('${v.id}',${!v.active})" title="${v.active?'Nonaktifkan':'Aktifkan'}">${v.active?'⏸':'▶'}</button>
+              <button class="ab ab-d" onclick="delVote('${v.id}')">🗑</button>
+            </div></td></tr>`;}).join(''):'<tr><td colspan="5" class="empty-msg">Belum ada voting.</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+const vForm=()=>`
+  <div class="fg"><label>Judul Voting</label><input id="fvt" type="text" placeholder="Cth: Lokasi Gathering"/></div>
+  <div class="fg"><label>Deskripsi</label><textarea id="fvd" placeholder="Deskripsi singkat..."></textarea></div>
+  <div class="fg"><label>Pilihan Opsi</label>
+    <div id="vopts">
+      <div class="opt-row"><input type="text" placeholder="Opsi 1"/><button class="rm-opt" onclick="rmOpt(this)">×</button></div>
+      <div class="opt-row"><input type="text" placeholder="Opsi 2"/><button class="rm-opt" onclick="rmOpt(this)">×</button></div>
+    </div>
+    <button class="add-opt" onclick="addOpt()">+ Tambah Opsi</button>
+  </div>`;
+
+window.addOpt=()=>{ const c=document.getElementById('vopts'),n=c.children.length+1,r=document.createElement('div'); r.className='opt-row'; r.innerHTML=`<input type="text" placeholder="Opsi ${n}"/><button class="rm-opt" onclick="rmOpt(this)">×</button>`; c.appendChild(r); };
+window.rmOpt=btn=>{ if(document.getElementById('vopts').children.length>2) btn.closest('.opt-row').remove(); else toast('Minimal 2 opsi','err'); };
+
+window.addVote=()=>openM('Buat Voting',vForm(),async()=>{
+  const title=document.getElementById('fvt').value.trim(),desc=document.getElementById('fvd').value.trim();
+  const opts=[...document.querySelectorAll('#vopts .opt-row input')].map(i=>i.value.trim()).filter(Boolean);
+  if(!title){toast('Judul wajib diisi','err');return;}
+  if(opts.length<2){toast('Minimal 2 opsi','err');return;}
+  await addDoc(collection(db,'votes'),{title,description:desc,options:opts.map(l=>({label:l,votes:0})),active:true,createdAt:serverTimestamp()});
+  closeM(); toast('Voting dibuat'); rVoting();
+});
+
+window.toggleVote=async(id,active)=>{
+  if(active){ const s=await getDocs(collection(db,'votes')); s.forEach(async d=>{ if(d.id!==id&&d.data().active) await updateDoc(doc(db,'votes',d.id),{active:false}); }); }
+  await updateDoc(doc(db,'votes',id),{active});
+  toast(active?'Voting diaktifkan':'Voting dinonaktifkan'); rVoting();
+};
+
+
+/* GALLERY ADMIN */
+async function rGallery(){
+  document.getElementById('mcontent').innerHTML='<div class="loading-state"><div class="spin"></div> Memuat...</div>';
+  const snap=await getDocs(query(collection(db,'gallery'),orderBy('createdAt','desc')));
+  const rows=[]; snap.forEach(d=>rows.push({id:d.id,...d.data()}));
+  document.getElementById('mcontent').innerHTML=`
+    <div class="tc">
+      <div class="tc-head"><h2>Galeri (${rows.length})</h2><button class="add-btn" onclick="addPhoto()">+ Tambah Foto</button></div>
+      <table class="dt">
+        <thead><tr><th>Preview</th><th>Caption</th><th>URL</th><th>Aksi</th></tr></thead>
+        <tbody>${rows.length?rows.map(g=>`<tr>
+          <td><img src="${g.url||''}" style="width:60px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border)" onerror="this.style.display='none'"/></td>
+          <td style="font-weight:600;max-width:180px">${g.caption||'—'}</td>
+          <td style="color:var(--muted);font-size:.75rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${g.url||'—'}</td>
+          <td><div class="acts">
+            <button class="ab ab-e" onclick='editPhoto(${JSON.stringify({id:g.id,caption:g.caption||"",url:g.url||""})})'>✏️</button>
+            <button class="ab ab-d" onclick="delPhoto('${g.id}')">🗑</button>
+          </div></td></tr>`).join(''):'<tr><td colspan="4" class="empty-msg">Belum ada foto.</td></tr>'}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+const gForm=(d={})=>`
+  <div class="fg"><label>URL Foto</label><input id="fgu" type="text" value="${(d.url||'')}" placeholder="https://drive.google.com/... atau link foto langsung"/></div>
+  <div class="fg"><label>Caption</label><input id="fgc" type="text" value="${(d.caption||'')}" placeholder="Deskripsi foto"/></div>
+  <div style="font-size:.75rem;color:var(--muted);margin-top:.5rem">💡 Tip: Upload foto ke Google Drive, lalu klik kanan → Bagikan → Salin link</div>`;
+
+function convertDriveUrl(url){
+  if(url.includes("drive.google.com/file/d/")){
+    const fileId = url.split("/d/")[1].split("/")[0];
+    return `https://drive.google.com/uc?export=view&id=${fileId}`;
+  }
+  return url;
+}
+  window.addPhoto=()=>openM('Tambah Foto',gForm(),async()=>{
+  const url=document.getElementById('fgu').value.trim();
+  const caption=document.getElementById('fgc').value.trim();
+  const finalUrl = convertDriveUrl(url);
+  if(!url){toast('URL foto wajib diisi','err');return;}
+  await addDoc(collection(db,'gallery'),{url: finalUrl,caption,createdAt: serverTimestamp()});
+  closeM(); toast('Foto ditambahkan'); rGallery();
+});
+
+window.editPhoto=d=>openM('Edit Foto',gForm(d),async()=>{
+  const url=document.getElementById('fgu').value.trim();
+  const caption=document.getElementById('fgc').value.trim();
+  const finalUrl = convertDriveUrl(url);
+  if(!url){toast('URL foto wajib diisi','err');return;}
+  await updateDoc(doc(db,'gallery',d.id),{url: finalUrl,caption});
+  closeM(); toast('Foto diperbarui'); rGallery();
+});
+
+window.delPhoto=async id=>{if(!confirm('Hapus foto ini?'))return;await deleteDoc(doc(db,'gallery',id));toast('Foto dihapus');rGallery();};
+
+window.delVote=async id=>{ if(!confirm('Hapus voting?'))return; await deleteDoc(doc(db,'votes',id)); toast('Dihapus'); rVoting(); };
+</script>
+</body>
+</html>
