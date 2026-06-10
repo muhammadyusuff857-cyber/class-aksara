@@ -30,7 +30,7 @@
       content:'';position:fixed;inset:0;z-index:0;
       background:
         linear-gradient(180deg,rgba(13,27,62,0.92) 0%,rgba(8,18,39,0.97) 100%),
-        url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1920&q=80') center/cover no-repeat;
+        url('https://akupintar.id/documents/20143/0/unm+2.jpg/e1c35e60-89f6-4a5a-3ceb-8797d3d31634?version=1.0&t=1715337225787&imagePreview=1') center/cover no-repeat;
     }
 
     /* SIDEBAR */
@@ -65,7 +65,7 @@
 
     /* LOGIN */
     .login-page{position:fixed;inset:0;z-index:900;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(8,18,39,0.97)}
-    .login-page::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1920&q=80') center/cover no-repeat;opacity:.15}
+    .login-page::before{content:'';position:absolute;inset:0;background:url('https://akupintar.id/documents/20143/0/unm+2.jpg/e1c35e60-89f6-4a5a-3ceb-8797d3d31634?version=1.0&t=1715337225787&imagePreview=1') center/cover no-repeat;opacity:.15}
     .lcard{position:relative;z-index:1;width:100%;max-width:360px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(24px);border-radius:20px;padding:2.25rem 2rem}
     .lhead{text-align:center;margin-bottom:1.75rem}
     .l-owl{width:64px;height:64px;border-radius:16px;background:var(--blue);border:2px solid rgba(59,114,245,.4);margin:0 auto .9rem;display:flex;align-items:center;justify-content:center;font-size:2.2rem;box-shadow:0 0 30px rgba(30,79,194,.4)}
@@ -338,6 +338,10 @@ async function rMembers(){
 const mForm=(d={})=>`
   <div class="fg"><label>Nama</label><input id="fn" type="text" value="${(d.name||'').replace(/"/g,'&quot;')}" placeholder="Nama lengkap"/></div>
   <div class="fg"><label>NIM</label><input id="fni" type="text" value="${d.nim||''}" placeholder="NIM"/></div>
+  <div class="fg"><label>Kelas</label><select id="fk">
+    <option value="A">Kelas A</option>
+    <option value="C">Kelas C</option>
+  </select></div>
   <div class="fg"><label>Jabatan</label><select id="fr">
     <option value="Anggota" ${(!d.role||d.role==='Anggota')?'selected':''}>Anggota</option>
     <option value="Ketua" ${d.role==='Ketua'?'selected':''}>Ketua</option>
@@ -346,16 +350,16 @@ const mForm=(d={})=>`
   </select></div>`;
 
 window.addMember=()=>openM('Tambah Anggota',mForm(),async()=>{
-  const name=document.getElementById('fn').value.trim(),nim=document.getElementById('fni').value.trim(),role=document.getElementById('fr').value;
+  const name=document.getElementById('fn').value.trim(),nim=document.getElementById('fni').value.trim(),kelas=document.getElementById('fk').value,role=document.getElementById('fr').value;
   if(!name){toast('Nama wajib diisi','err');return;}
-  await addDoc(collection(db,'members'),{name,nim,role,createdAt:serverTimestamp()});
+  await addDoc(collection(db,'members'),{name,nim,kelas,role,createdAt:serverTimestamp()});
   closeM(); toast('Anggota ditambahkan'); rMembers();
 });
 
 window.editMember=m=>openM('Edit Anggota',mForm(m),async()=>{
-  const name=document.getElementById('fn').value.trim(),nim=document.getElementById('fni').value.trim(),role=document.getElementById('fr').value;
+  const name=document.getElementById('fn').value.trim(),nim=document.getElementById('fni').value.trim(),kelas=document.getElementById('fk').value,role=document.getElementById('fr').value;
   if(!name){toast('Nama wajib diisi','err');return;}
-  await updateDoc(doc(db,'members',m.id),{name,nim,role});
+  await updateDoc(doc(db,'members',m.id),{name,nim,kelas,role});
   closeM(); toast('Anggota diperbarui'); rMembers();
 });
 
