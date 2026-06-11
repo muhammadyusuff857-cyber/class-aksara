@@ -397,7 +397,7 @@ async function loadMembers(){
     if(snap.empty){w.innerHTML='<p class="empty-msg">Belum ada anggota.</p>';return;}
     allMembers=[];snap.forEach(d=>allMembers.push(d.data()));
     const ord=['Ketua','Sekretaris','Bendahara'];
-    allMembers.sort((a,b)=>{const ai=ord.indexOf(a.role),bi=ord.indexOf(b.role);if(ai!==-1&&bi===-1)return -1;if(ai===-1&&bi!==-1)return 1;return 0;});
+    allMembers.sort((a,b)=>{const ai=ord.indexOf(a.role),bi=ord.indexOf(b.role);if(ai!==-1&&bi===-1)return -1;if(ai===-1&&bi!==-1)return 1;return (a.nim||'').localeCompare(b.nim||'');});
     document.getElementById('stat-members').textContent=allMembers.length;
     const ca=allMembers.filter(m=>(m.kelas||'').toUpperCase()==='A').length;
     const cc=allMembers.filter(m=>(m.kelas||'').toUpperCase()==='C').length;
