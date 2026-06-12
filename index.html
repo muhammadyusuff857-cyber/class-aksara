@@ -47,7 +47,7 @@
     .hero-inner{max-width:720px}
     .hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--white10);border:1px solid var(--glass-border);backdrop-filter:blur(10px);color:var(--white80);font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.38rem 1rem;border-radius:100px;margin-bottom:1.5rem;animation:fadeUp .6s ease both}
     .hero-logo-wrap{margin:0 auto 1.5rem;animation:fadeDown .7s ease both}
-    .hero-logo-img{height:80px;width:auto;filter:brightness(0) invert(1);drop-shadow:0 4px 20px rgba(0,0,0,.4)}
+    .hero-logo-img{height:clamp(40px,10vw,80px);width:auto;filter:brightness(0) invert(1);drop-shadow:0 4px 20px rgba(0,0,0,.4)}
     .hero h1{font-family:'Montserrat',sans-serif;font-weight:900;font-size:clamp(2.8rem,8vw,5.5rem);line-height:1;letter-spacing:-.02em;animation:fadeUp .7s .1s ease both}
     .hero h1 .acc{color:var(--accent)}
     .hero-sub{margin-top:.9rem;font-size:.95rem;color:var(--white80);line-height:1.65;animation:fadeUp .7s .2s ease both}
@@ -208,6 +208,10 @@
       .section-wrap { padding: 3.5rem 1.25rem; }
       .hero { padding: 5rem 1.25rem 3rem; }
       footer { padding: 1.75rem 1.25rem; flex-direction: column; text-align: center; }
+      .hero h1 { font-size: 2.5rem !important; }
+      .hst { max-width: 100%; }
+      .sn { font-size: 1.3rem !important; }
+      img[style*="height:80px"] { height: 45px !important; }
     }
   </style>
 </head>
