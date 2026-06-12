@@ -460,6 +460,7 @@ window.addAnn=()=>openM('Tambah Pengumuman',aForm(),async()=>{
   if(!title){toast('Judul wajib diisi','err');return;}
   await addDoc(collection(db,'announcements'),{type,title,content,author,createdAt:serverTimestamp()});
   closeM(); toast('Pengumuman ditambahkan'); rAnn();
+  sendNotification('📢 Pengumuman Baru', title);
 });
 
 window.editAnn=a=>openM('Edit Pengumuman',aForm(a),async()=>{
@@ -630,8 +631,22 @@ window.editPhoto=d=>openM('Edit Foto',gForm(d),async()=>{
   await updateDoc(doc(db,'gallery',d.id),{url: finalUrl,caption});
   closeM(); toast('Foto diperbarui'); rGallery();
 });
-
 window.delPhoto=async id=>{if(!confirm('Hapus foto ini?'))return;await deleteDoc(doc(db,'gallery',id));toast('Foto dihapus');rGallery();};
+
+/*NOTIFICATIONS*/
+async function sendNotification(title,body){
+  try{
+    const snap=await getDocs(collection(db,'fcm_tokens'));
+    const tokens=[];
+    snap.forEach(d=>tokens.push(d.data().token));
+    if(tokens.length===0){
+      toast('Belum ada subscriber notifikasi','err');return;}
+      await addDoc(collection(db,'pending_notifications'),{
+        title,body,tokens,sentAt:serverTimestamp(),status:'pending'});
+        toast('Notifikasi dikirim ke '+tokens.length+' anggota! 🔔');}
+        catch(e){toast('Gagal kirim notifikasi','err');
+        }
+      }
 
 window.delVote=async id=>{ if(!confirm('Hapus voting?'))return; await deleteDoc(doc(db,'votes',id)); toast('Dihapus'); rVoting(); };
 </script>
