@@ -27,8 +27,8 @@
     html{scroll-behavior:smooth}
     body{font-family:'Inter',sans-serif;background:var(--blue-dark);color:var(--white);overflow-x:hidden;min-height:100vh}
 
-    .bg-layer{position:fixed;inset:0;z-index:0;background:linear-gradient(180deg,rgba(13,27,62,0.40) 0%,rgba(13,27,62,0.55) 100%),url('https://files.catbox.moe/g4xizz.jpg') center/cover no-repeat}
-    .bg-layer::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 120% 80% at 50% 0%,rgba(30,79,194,0.15) 0%,transparent 70%)}
+    .bg-layer{position:fixed;inset:0;z-index:0;background:linear-gradient(180deg,rgba(13,27,62,0.72) 0%,rgba(13,27,62,0.88) 100%),url('https://files.catbox.moe/g4xizz.jpg') center/cover no-repeat}
+    .bg-layer::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 120% 80% at 50% 0%,rgba(30,79,194,0.25) 0%,transparent 70%)}
 
     /* NAV */
     nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:.85rem 3rem;background:rgba(13,27,62,0.75);backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border)}
@@ -411,15 +411,19 @@ async function loadMembers(){
 function renderMembers(list){
   const w=document.getElementById('members-wrap');
   if(!list.length){w.innerHTML='<p class="empty-msg">Tidak ada anggota di kelas ini.</p>';return;}
-  w.innerHTML='<div class="members-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.8rem">'+list.map(m=>{
+  w.innerHTML='<div class="members-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem">'+list.map(m=>{
     const init=(m.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const kb=m.kelas?'<div style="display:inline-block;margin-top:.3rem;font-size:.6rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:.15rem .45rem;border-radius:4px;background:rgba(240,184,74,.2);border:1px solid rgba(240,184,74,.3);color:#f0b84a">Kelas '+m.kelas.toUpperCase()+'</div>':'';
-return '<div class="gc m-card" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);backdrop-filter:blur(16px);border-radius:16px;padding:1.2rem 1rem;text-align:center">'
-+'<div class="m-avatar" style="width:50px;height:50px;border-radius:50%;margin:0 auto .7rem;overflow:hidden;background:linear-gradient(135deg,#1a3a7a,#1e4fc2);border:2px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-family:Montserrat,sans-serif;font-weight:800;font-size:1rem;color:#fff">'+(m.photo?'<img src="'+m.photo+'" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent=\''+init+'\'">':init)+'</div>'
-+'<div style="font-size:.82rem;font-weight:600;line-height:1.3">'+m.name+'</div>'
-+'<div style="font-size:.7rem;color:rgba(255,255,255,0.5);margin-top:.15rem">'+(m.nim||'')+'</div>'
-+(m.role?'<div style="display:inline-block;margin-top:.4rem;font-size:.6rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:.15rem .45rem;border-radius:4px;background:rgba(30,79,194,0.35);border:1px solid rgba(59,114,245,0.3);color:#93bbf8">'+m.role+'</div>':'')
-+(m.kelas?'<div style="display:inline-block;margin-top:.3rem;margin-left:.2rem;font-size:.6rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:.15rem .45rem;border-radius:4px;background:rgba(240,184,74,0.2);border:1px solid rgba(240,184,74,0.3);color:#f0b84a">Kelas '+m.kelas.toUpperCase()+'</div>':'')
+    const photoBg=m.photo?"url('"+m.photo+"') center/cover no-repeat":'linear-gradient(135deg,#1a3a7a,#1e4fc2)';
+return '<div class="gc m-card" style="border:1px solid rgba(255,255,255,0.18);backdrop-filter:blur(16px);border-radius:18px;overflow:hidden;text-align:center;background:rgba(255,255,255,0.06)">'
++'<div style="padding:.6rem .5rem .2rem;font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#93bbf8">'+(m.kelas?'Kelas '+m.kelas.toUpperCase():'&nbsp;')+'</div>'
++'<div style="position:relative;padding:0 .7rem .7rem">'
+  +'<div style="position:relative;border-radius:10px;overflow:hidden;border:2px solid rgba(255,255,255,0.25);aspect-ratio:3/4;background:'+photoBg+';display:flex;align-items:center;justify-content:center;font-family:Montserrat,sans-serif;font-weight:800;font-size:1.6rem;color:#fff">'
+    +(m.photo?'':init)
+    +(m.role?'<div style="position:absolute;left:.4rem;top:50%;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl;font-family:Montserrat,sans-serif;font-weight:800;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6)">'+m.role+'</div>':'')
+  +'</div>'
++'</div>'
++'<div style="background:rgba(13,27,62,0.85);padding:.5rem .5rem .25rem;font-weight:700;font-size:.8rem;line-height:1.25">'+m.name+'</div>'
++'<div style="padding:0 .5rem .6rem;font-size:.62rem;font-style:italic;color:rgba(255,255,255,0.5);background:rgba(13,27,62,0.85)">'+(m.nim||'')+'</div>'
 +'</div>';
   }).join('')+'</div>';
 }

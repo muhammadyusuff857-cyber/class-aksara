@@ -338,7 +338,7 @@ async function rMembers(){
 const mForm=(d={})=>`
   <div class="fg"><label>Nama</label><input id="fn" type="text" value="${(d.name||'').replace(/"/g,'&quot;')}" placeholder="Nama lengkap"/></div>
   <div class="fg"><label>NIM</label><input id="fni" type="text" value="${d.nim||''}" placeholder="NIM"/></div>
-  <div class="fg"><label>URL Foto</label><input id="fp" type="text" value="${(d.photo||'').replace(/"/g,'&quot;')}" placeholder="https://..."/></div>
+  <div class="fg"><label>URL Foto</label><input id="fp" type="text" value="${(d.photo||'').replace(/"/g,'&quot;')}" placeholder="https://... (link foto langsung)"/></div>
   <div class="fg"><label>Kelas</label><select id="fk">
     <option value="A">Kelas A</option>
     <option value="C">Kelas C</option>
@@ -356,12 +356,14 @@ window.addMember=()=>openM('Tambah Anggota',mForm(),async()=>{
   await addDoc(collection(db,'members'),{name,nim,kelas,role,photo,createdAt:serverTimestamp()});
   closeM(); toast('Anggota ditambahkan'); rMembers();
 });
+
 window.editMember=m=>openM('Edit Anggota',mForm(m),async()=>{
   const name=document.getElementById('fn').value.trim(),nim=document.getElementById('fni').value.trim(),kelas=document.getElementById('fk').value,role=document.getElementById('fr').value,photo=document.getElementById('fp').value.trim();
   if(!name){toast('Nama wajib diisi','err');return;}
   await updateDoc(doc(db,'members',m.id),{name,nim,kelas,role,photo});
   closeM(); toast('Anggota diperbarui'); rMembers();
 });
+
 window.delMember=async id=>{
   if(!confirm('Hapus anggota ini?'))return;
   await deleteDoc(doc(db,'members',id)); toast('Dihapus'); rMembers();
