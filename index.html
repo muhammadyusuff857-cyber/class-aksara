@@ -214,19 +214,6 @@
 <body>
 <div class="bg-layer"></div>
 
-<!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox" onclick="closeLB()">
-  <button class="lb-close" onclick="closeLB()">✕</button>
-  <img id="lb-img" src="" alt=""/>
-</div>
-
-
-<!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLB()">
-  <button class="lb-close" onclick="closeLB()">✕</button>
-  <img id="lb-img" src="" alt=""/>
-</div>
-
 <!-- NAV -->
 <nav>
   <div class="nav-brand">
@@ -239,6 +226,8 @@
     <li><a href="#galeri">Galeri</a></li>
     <li><a href="#dokumen">Dokumen</a></li>
     <li><a href="#voting">Voting</a></li>
+    <li><a href="https://www.instagram.com/atripleclan?igsh=MnN3MmtzYnpyODd2" target="_blank" rel="noopener" title="Instagram Kelas A" style="font-size:1rem">📷</a></li>
+    <li><a href="https://www.instagram.com/insideclassc?igsh=MXJ2amhnYmxsNzM3Ng==" target="_blank" rel="noopener" title="Instagram Kelas C" style="font-size:1rem">📷</a></li>
     <li><a href="admin.html" class="nav-admin">⚙ Admin</a></li>
   </ul>
 </nav>
@@ -317,7 +306,7 @@
 </footer>
 
 <!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox" onclick="closeLb()">
+<div class="lightbox" id="lightbox" onclick="if(event.target===this)closeLb()">
   <button class="lb-close" onclick="closeLb()">✕</button>
   <img id="lb-img" src="" alt=""/>
 </div>
