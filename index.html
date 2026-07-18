@@ -408,22 +408,26 @@ async function loadMembers(){
   }catch{document.getElementById('members-wrap').innerHTML='<p class="empty-msg">Gagal memuat.</p>';}
 }
 
+const classLogos={a:'https://i.imgur.com/0WszntG.jpeg',c:'https://i.imgur.com/hhKCrFs.jpeg'};
 function renderMembers(list){
   const w=document.getElementById('members-wrap');
   if(!list.length){w.innerHTML='<p class="empty-msg">Tidak ada anggota di kelas ini.</p>';return;}
-  w.innerHTML='<div class="members-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem">'+list.map(m=>{
+  w.innerHTML='<div class="members-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1.1rem">'+list.map(m=>{
     const init=(m.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const photoBg=m.photo?"url('"+m.photo+"') center/cover no-repeat":'linear-gradient(135deg,#1a3a7a,#1e4fc2)';
-return '<div class="gc m-card" style="border:1px solid rgba(255,255,255,0.18);backdrop-filter:blur(16px);border-radius:18px;overflow:hidden;text-align:center;background:rgba(255,255,255,0.06)">'
-+'<div style="padding:.6rem .5rem .2rem;font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#93bbf8">'+(m.kelas?'Kelas '+m.kelas.toUpperCase():'&nbsp;')+'</div>'
-+'<div style="position:relative;padding:0 .7rem .7rem">'
-  +'<div style="position:relative;border-radius:10px;overflow:hidden;border:2px solid rgba(255,255,255,0.25);aspect-ratio:3/4;background:'+photoBg+';display:flex;align-items:center;justify-content:center;font-family:Montserrat,sans-serif;font-weight:800;font-size:1.6rem;color:#fff">'
-    +(m.photo?'':init)
-    +(m.role?'<div style="position:absolute;left:.4rem;top:50%;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl;font-family:Montserrat,sans-serif;font-weight:800;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6)">'+m.role+'</div>':'')
-  +'</div>'
+    const logoUrl=classLogos[(m.kelas||'').toLowerCase()];
+return '<div class="m-card" style="background:#f6f1e6;border:2px dashed #1a3a7a;border-radius:16px;overflow:hidden;text-align:center;padding:.65rem .6rem .55rem;box-shadow:0 6px 18px rgba(0,0,0,.25)">'
++'<div style="display:flex;align-items:center;justify-content:center;gap:.35rem;padding:.1rem 0 .55rem">'
+  +'<div style="width:20px;height:20px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#1a3a7a,#1e4fc2);display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:800;color:#fff;font-family:Montserrat,sans-serif">'+(logoUrl?'<img src="'+logoUrl+'" style="width:100%;height:100%;object-fit:cover">':((m.kelas||'').toUpperCase()[0]||'?'))+'</div>'
+  +'<span style="font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1a3a7a">'+(m.kelas?'Kelas '+m.kelas.toUpperCase():'&nbsp;')+'</span>'
 +'</div>'
-+'<div style="background:rgba(13,27,62,0.85);padding:.5rem .5rem .25rem;font-weight:700;font-size:.8rem;line-height:1.25">'+m.name+'</div>'
-+'<div style="padding:0 .5rem .6rem;font-size:.62rem;font-style:italic;color:rgba(255,255,255,0.5);background:rgba(13,27,62,0.85)">'+(m.nim||'')+'</div>'
++'<div style="position:relative;border-radius:10px;overflow:hidden;border:3px solid #1a3a7a;aspect-ratio:3/4;background:'+photoBg+';display:flex;align-items:center;justify-content:center;font-family:Montserrat,sans-serif;font-weight:800;font-size:1.6rem;color:'+(m.photo?'#fff':'#1a3a7a')+'">'
+  +(m.photo?'':init)
+  +(m.role?'<div style="position:absolute;left:0;top:0;bottom:0;width:22px;background:rgba(26,58,122,0.85);display:flex;align-items:center;justify-content:center"><span style="writing-mode:vertical-rl;transform:rotate(180deg);font-family:Montserrat,sans-serif;font-size:.65rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#fff">'+m.role+'</span></div>':'')
++'</div>'
++'<div style="background:#1a3a7a;border-radius:7px;margin-top:.55rem;padding:.42rem .4rem .18rem;font-weight:700;font-size:.8rem;color:#fff;line-height:1.25">'+m.name+'</div>'
++'<div style="padding:.15rem 0 .4rem;font-size:.62rem;font-style:italic;color:#5a6b8c">'+(m.nim||'')+'</div>'
++'<div style="height:7px;border-radius:4px;background:repeating-linear-gradient(45deg,#1a3a7a 0 5px,transparent 5px 10px);opacity:.55"></div>'
 +'</div>';
   }).join('')+'</div>';
 }
