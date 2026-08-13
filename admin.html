@@ -110,6 +110,12 @@
     .b-on{background:rgba(34,197,94,.15);color:#86efac}
     .b-off{background:rgba(255,255,255,.07);color:var(--muted)}
     .b-day{background:rgba(59,114,245,.2);color:#93bbf8}
+    .b-hadir{background:rgba(34,197,94,.18);color:#4ade80}
+    .b-izin{background:rgba(240,184,74,.2);color:#f0b84a}
+    .b-sakit{background:rgba(59,114,245,.2);color:#7ea1f7}
+    .b-alpa{background:rgba(224,58,40,.2);color:#f16a5c}
+    .att-tab{padding:.45rem .95rem;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--border,#22345c);color:var(--muted);font-size:.78rem;font-weight:600;cursor:pointer}
+    .att-tab.active{background:rgba(59,114,245,.2);color:#93bbf8;border-color:rgba(59,114,245,.4)}
 
     /* ACTIONS */
     .acts{display:flex;gap:.35rem}
@@ -187,6 +193,7 @@
       <a class="sb-item active" onclick="go('dashboard')" href="#"><span class="sb-icon">📊</span>Dashboard</a>
       <a class="sb-item" onclick="go('members')" href="#"><span class="sb-icon">👥</span>Anggota</a>
       <a class="sb-item" onclick="go('schedules')" href="#"><span class="sb-icon">📅</span>Jadwal</a>
+      <a class="sb-item" onclick="go('attendance')" href="#"><span class="sb-icon">📝</span>Absensi</a>
       <a class="sb-item" onclick="go('announcements')" href="#"><span class="sb-icon">📢</span>Pengumuman</a>
       <a class="sb-item" onclick="go('gallery')" href="#"><span class="sb-icon">🖼</span>Galeri</a>
       <a class="sb-item" onclick="go('documents')" href="#"><span class="sb-icon">📁</span>Dokumen</a>
@@ -228,8 +235,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, orderBy, query, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, orderBy, query, getDoc, where, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const app = initializeApp({
   apiKey:"AIzaSyCews7iQRZVvGkQhCEKf1ZE4Qidv8mDzyk",
   authDomain:"class-akuntansi.firebaseapp.com",
@@ -283,12 +289,12 @@ window.saveM=()=>{ if(mCb) mCb(); };
 document.getElementById('overlay').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeM(); });
 
 /* ROUTING */
-const titles={dashboard:'Dashboard',members:'Anggota',schedules:'Jadwal',announcements:'Pengumuman',gallery:'Galeri',documents:'Dokumen',voting:'Voting'};
+const titles={dashboard:'Dashboard',members:'Anggota',schedules:'Jadwal',attendance:'Absensi',announcements:'Pengumuman',gallery:'Galeri',documents:'Dokumen',voting:'Voting'};
 window.go=page=>{
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i=>{ if(i.getAttribute('onclick')?.includes(`'${page}'`)) i.classList.add('active'); });
   document.getElementById('ptitle').textContent=titles[page]||page;
-  ({dashboard:rDashboard,members:rMembers,schedules:rSchedules,announcements:rAnn,gallery:rGallery,documents:rDocs,voting:rVoting})[page]?.();
+  ({dashboard:rDashboard,members:rMembers,schedules:rSchedules,attendance:rAttendance,announcements:rAnn,gallery:rGallery,documents:rDocs,voting:rVoting})[page]?.();
 };
 
 /* DASHBOARD */
@@ -418,6 +424,229 @@ window.editSched=s=>openM('Edit Jadwal',sForm(s),async()=>{
 });
 
 window.delSched=async id=>{ if(!confirm('Hapus jadwal?'))return; await deleteDoc(doc(db,'schedules',id)); toast('Dihapus'); rSchedules(); };
+
+/* ATTENDANCE */
+const STAT_LABEL={hadir:'Hadir',izin:'Izin',sakit:'Sakit',alpa:'Alpa'};
+const STAT_COLOR={hadir:'b-hadir',izin:'b-izin',sakit:'b-sakit',alpa:'b-alpa'};
+let attCache={schedules:[],members:[]};
+
+function todayStr(){ const d=new Date(); const off=d.getTimezoneOffset(); return new Date(d.getTime()-off*60000).toISOString().slice(0,10); }
+function dayNameFromDate(dateStr){
+  const names=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  return names[new Date(dateStr+'T00:00:00').getDay()];
+}
+
+async function rAttendance(){
+  document.getElementById('mcontent').innerHTML='<div class="loading-state"><div class="spin"></div> Memuat...</div>';
+  const [schedSnap,memSnap]=await Promise.all([getDocs(collection(db,'schedules')),getDocs(collection(db,'members'))]);
+  attCache.schedules=[]; schedSnap.forEach(d=>attCache.schedules.push(d.data()));
+  attCache.members=[]; memSnap.forEach(d=>attCache.members.push({id:d.id,...d.data()}));
+  switchAttTab('session');
+}
+
+let currentAttTab='session';
+window.switchAttTab=function(tab){
+  currentAttTab=tab;
+  document.getElementById('mcontent').innerHTML=`
+    <div class="tc">
+      <div class="tc-head" style="flex-wrap:wrap;gap:.6rem">
+        <h2>Absensi</h2>
+        <div style="display:flex;gap:.4rem">
+          <button class="att-tab ${tab==='session'?'active':''}" onclick="switchAttTab('session')">Per Sesi</button>
+          <button class="att-tab ${tab==='rekap'?'active':''}" onclick="switchAttTab('rekap')">Rekap Mata Kuliah</button>
+        </div>
+      </div>
+      <div id="att-content"></div>
+    </div>`;
+  if(tab==='session') renderAttendanceUI(todayStr());
+  else renderRekapUI();
+};
+
+function renderAttendanceUI(date){
+  const day=dayNameFromDate(date);
+  const subs=attCache.schedules.filter(s=>s.day===day).sort((a,b)=>a.time.localeCompare(b.time));
+  document.getElementById('att-content').innerHTML=`
+      <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:.6rem">
+        <input type="date" id="att-date" value="${date}" onchange="renderAttendanceUI(this.value)" style="background:#0d1730;color:#fff;border:1px solid #22345c;border-radius:8px;padding:.45rem .6rem;font-size:.8rem"/>
+        <select id="att-subject" onchange="loadAttendance()" style="background:#0d1730;color:#fff;border:1px solid #22345c;border-radius:8px;padding:.45rem .6rem;font-size:.8rem;max-width:220px">
+          ${subs.length?subs.map(s=>`<option value="${s.subject}">${s.time} · ${s.subject}</option>`).join(''):'<option value="">Tidak ada jadwal</option>'}
+        </select>
+      </div>
+      <p style="color:var(--muted);font-size:.78rem;margin:-.3rem 0 .8rem">Hari ${day}, ${new Date(date+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}${!subs.length?' — tidak ada mata kuliah terjadwal hari ini':''}</p>
+      <div id="att-summary" style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+      <table class="dt">
+        <thead><tr><th>#</th><th>Nama</th><th>NIM</th><th>Kelas</th><th>Status</th><th>Set Status</th></tr></thead>
+        <tbody id="att-body"><tr><td colspan="6" class="empty-msg">Memuat...</td></tr></tbody>
+      </table>`;
+  loadAttendance();
+}
+window.renderAttendanceUI=renderAttendanceUI;
+
+window.loadAttendance=async()=>{
+  const date=document.getElementById('att-date').value;
+  const subject=document.getElementById('att-subject').value;
+  const tbody=document.getElementById('att-body');
+  const members=[...attCache.members].sort((a,b)=>(a.nim||'').localeCompare(b.nim||''));
+  if(!subject){
+    document.getElementById('att-summary').innerHTML='';
+    tbody.innerHTML='<tr><td colspan="6" class="empty-msg">Pilih mata kuliah untuk melihat/mengisi absensi.</td></tr>';
+    return;
+  }
+  tbody.innerHTML='<tr><td colspan="6" class="empty-msg">Memuat...</td></tr>';
+  const records={};
+  const snap=await getDocs(query(collection(db,'attendance'), where('date','==',date), where('subject','==',subject)));
+  snap.forEach(d=>{ records[d.data().nim]=d.data(); });
+  const counts={hadir:0,izin:0,sakit:0,alpa:0,belum:0};
+  members.forEach(m=>{ const st=records[m.nim]?.status; if(st) counts[st]++; else counts.belum++; });
+  document.getElementById('att-summary').innerHTML=`
+    <span class="badge b-hadir">Hadir: ${counts.hadir}</span>
+    <span class="badge b-izin">Izin: ${counts.izin}</span>
+    <span class="badge b-sakit">Sakit: ${counts.sakit}</span>
+    <span class="badge b-alpa">Alpa: ${counts.alpa}</span>
+    <span class="badge" style="background:rgba(255,255,255,.07);color:var(--muted)">Belum diisi: ${counts.belum}</span>`;
+  tbody.innerHTML= members.length? members.map((m,i)=>{
+    const st=records[m.nim]?.status;
+    const nimSafe=(m.nim||'').replace(/'/g,"\\'");
+    const nameSafe=(m.name||'').replace(/'/g,"\\'");
+    const kelasSafe=(m.kelas||'').replace(/'/g,"\\'");
+    return `<tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td style="font-weight:600">${m.name}</td>
+      <td style="color:var(--muted)">${m.nim||'—'}</td>
+      <td style="color:var(--muted)">${(m.kelas||'—').toString().toUpperCase()}</td>
+      <td>${st?`<span class="badge ${STAT_COLOR[st]}">${STAT_LABEL[st]}</span>`:'<span class="badge" style="background:rgba(255,255,255,.07);color:var(--muted)">Belum</span>'}</td>
+      <td><div class="acts">
+        <button class="ab" style="background:rgba(34,197,94,.15);color:#4ade80" title="Hadir" onclick="setAtt('${nimSafe}','${nameSafe}','${kelasSafe}','hadir')">H</button>
+        <button class="ab" style="background:rgba(240,184,74,.15);color:#f0b84a" title="Izin" onclick="setAtt('${nimSafe}','${nameSafe}','${kelasSafe}','izin')">I</button>
+        <button class="ab" style="background:rgba(59,114,245,.15);color:#7ea1f7" title="Sakit" onclick="setAtt('${nimSafe}','${nameSafe}','${kelasSafe}','sakit')">S</button>
+        <button class="ab" style="background:rgba(224,58,40,.15);color:#f16a5c" title="Alpa" onclick="setAtt('${nimSafe}','${nameSafe}','${kelasSafe}','alpa')">A</button>
+      </div></td></tr>`;
+  }).join('') : '<tr><td colspan="6" class="empty-msg">Belum ada anggota.</td></tr>';
+};
+
+window.setAtt=async(nim,name,kelas,status)=>{
+  const date=document.getElementById('att-date').value;
+  const subject=document.getElementById('att-subject').value;
+  if(!subject){toast('Pilih mata kuliah dulu','err');return;}
+  const id=(date+'_'+subject+'_'+nim).replace(/[^a-zA-Z0-9_-]/g,'_');
+  await setDoc(doc(db,'attendance',id),{date,day:dayNameFromDate(date),subject,nim,name,kelas,status,markedBy:'admin',updatedAt:serverTimestamp()},{merge:true});
+  toast('Absensi diperbarui');
+  loadAttendance();
+};
+
+/* REKAP MATA KULIAH */
+let rekapData=[];       // dipakai saat mode Ringkasan
+let rekapGridData=null; // dipakai saat mode Grid
+let rekapMode='grid';
+let rekapKelas='semua';
+
+function renderRekapUI(){
+  const subjects=[...new Set(attCache.schedules.map(s=>s.subject))].sort();
+  document.getElementById('att-content').innerHTML=`
+      <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:.6rem">
+        <select id="rekap-subject" onchange="loadRekap()" style="background:#0d1730;color:#fff;border:1px solid #22345c;border-radius:8px;padding:.45rem .6rem;font-size:.8rem;max-width:260px">
+          ${subjects.length?subjects.map(s=>`<option value="${s}">${s}</option>`).join(''):'<option value="">Belum ada mata kuliah</option>'}
+        </select>
+        <select id="rekap-kelas" onchange="loadRekap()" style="background:#0d1730;color:#fff;border:1px solid #22345c;border-radius:8px;padding:.45rem .6rem;font-size:.8rem">
+          <option value="semua">Semua Kelas</option>
+          <option value="A">Kelas A</option>
+          <option value="C">Kelas C</option>
+        </select>
+        <button class="att-tab ${rekapMode==='grid'?'active':''}" onclick="setRekapMode('grid')">Grid Kehadiran</button>
+        <button class="att-tab ${rekapMode==='summary'?'active':''}" onclick="setRekapMode('summary')">Ringkasan %</button>
+        <button class="add-btn" onclick="exportRekapCSV()">⬇ Export CSV</button>
+      </div>
+      <p id="rekap-info" style="color:var(--muted);font-size:.78rem;margin:0 0 .8rem"></p>
+      <div style="overflow-x:auto"><table class="dt" id="rekap-table" style="min-width:600px"></table></div>`;
+  loadRekap();
+}
+window.renderRekapUI=renderRekapUI;
+window.setRekapMode=function(m){ rekapMode=m; renderRekapUI(); };
+
+window.loadRekap=async function(){
+  const subject=document.getElementById('rekap-subject').value;
+  rekapKelas=document.getElementById('rekap-kelas').value;
+  const table=document.getElementById('rekap-table');
+  if(!subject){ table.innerHTML='<tr><td class="empty-msg">Belum ada mata kuliah untuk direkap.</td></tr>'; rekapData=[]; rekapGridData=null; return; }
+  table.innerHTML='<tr><td class="empty-msg">Memuat...</td></tr>';
+  const snap=await getDocs(query(collection(db,'attendance'), where('subject','==',subject)));
+  const allRecs=[]; snap.forEach(d=>allRecs.push(d.data()));
+  const dates=[...new Set(allRecs.map(r=>r.date))].sort();
+  document.getElementById('rekap-info').textContent='Total pertemuan tercatat: '+dates.length+' kali'+(rekapKelas!=='semua'?' · Kelas '+rekapKelas:'');
+  let members=[...attCache.members];
+  if(rekapKelas!=='semua') members=members.filter(m=>(m.kelas||'').toUpperCase()===rekapKelas);
+  members.sort((a,b)=>(a.nim||'').localeCompare(b.nim||''));
+
+  if(rekapMode==='grid'){
+    const rows=members.map(m=>{
+      const cells={};
+      dates.forEach(dt=>{
+        const rec=allRecs.find(r=>r.nim===m.nim && r.date===dt);
+        cells[dt]=rec?rec.status:null;
+      });
+      return {name:m.name,nim:m.nim||'',kelas:(m.kelas||'').toUpperCase(),cells};
+    });
+    rekapGridData={dates,rows};
+    const SYM={hadir:'<span style="color:#4ade80;font-weight:800">✓</span>',izin:'<span style="color:#f0b84a;font-weight:800">I</span>',sakit:'<span style="color:#7ea1f7;font-weight:800">S</span>',alpa:'<span style="color:#f16a5c;font-weight:800">A</span>'};
+    table.innerHTML=`
+      <thead><tr><th>No</th><th>Nama</th><th>NIM</th>${dates.map((dt,i)=>`<th style="text-align:center" title="${dt}">${i+1}</th>`).join('')}</tr></thead>
+      <tbody>${rows.length?rows.map((r,i)=>`<tr>
+        <td style="color:var(--muted)">${i+1}</td>
+        <td style="font-weight:600;white-space:nowrap">${r.name}</td>
+        <td style="color:var(--muted)">${r.nim||'—'}</td>
+        ${dates.map(dt=>`<td style="text-align:center">${r.cells[dt]?SYM[r.cells[dt]]||'—':'<span style="color:rgba(255,255,255,.2)">·</span>'}</td>`).join('')}
+      </tr>`).join(''):`<tr><td colspan="${3+dates.length}" class="empty-msg">Belum ada anggota.</td></tr>`}</tbody>`;
+    rekapData=[];
+  } else {
+    rekapGridData=null;
+    rekapData=members.map(m=>{
+      const recs=allRecs.filter(r=>r.nim===m.nim);
+      const c={hadir:0,izin:0,sakit:0,alpa:0};
+      recs.forEach(r=>{ if(c[r.status]!==undefined) c[r.status]++; });
+      const pct=dates.length? Math.round((c.hadir/dates.length)*100) : 0;
+      return {name:m.name,nim:m.nim||'',kelas:(m.kelas||'').toUpperCase(),...c,pct};
+    });
+    table.innerHTML=`
+      <thead><tr><th>#</th><th>Nama</th><th>NIM</th><th>Kelas</th><th>Hadir</th><th>Izin</th><th>Sakit</th><th>Alpa</th><th>% Hadir</th></tr></thead>
+      <tbody>${rekapData.length?rekapData.map((r,i)=>`<tr>
+        <td style="color:var(--muted)">${i+1}</td>
+        <td style="font-weight:600">${r.name}</td>
+        <td style="color:var(--muted)">${r.nim||'—'}</td>
+        <td style="color:var(--muted)">${r.kelas||'—'}</td>
+        <td><span class="badge b-hadir">${r.hadir}</span></td>
+        <td><span class="badge b-izin">${r.izin}</span></td>
+        <td><span class="badge b-sakit">${r.sakit}</span></td>
+        <td><span class="badge b-alpa">${r.alpa}</span></td>
+        <td style="font-weight:700;color:${r.pct>=80?'#4ade80':r.pct>=60?'#f0b84a':'#f16a5c'}">${r.pct}%</td>
+      </tr>`).join(''):'<tr><td colspan="9" class="empty-msg">Belum ada anggota.</td></tr>'}</tbody>`;
+  }
+};
+
+window.exportRekapCSV=function(){
+  const subject=document.getElementById('rekap-subject').value;
+  const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  let csv='';
+  if(rekapMode==='grid'){
+    if(!rekapGridData || !rekapGridData.rows.length){ toast('Tidak ada data untuk di-export','err'); return; }
+    const header=['No','Nama','NIM',...rekapGridData.dates.map((d,i)=>'P'+(i+1)+' ('+d+')')];
+    const rows=rekapGridData.rows.map((r,i)=>[i+1,r.name,r.nim,...rekapGridData.dates.map(dt=>{
+      const st=r.cells[dt]; return st?{hadir:'H',izin:'I',sakit:'S',alpa:'A'}[st]:'-';
+    })].map(esc).join(','));
+    csv='\uFEFF'+[header.map(esc).join(','), ...rows].join('\r\n');
+  } else {
+    if(!rekapData.length){ toast('Tidak ada data untuk di-export','err'); return; }
+    const header=['Nama','NIM','Kelas','Hadir','Izin','Sakit','Alpa','% Hadir'];
+    const rows=rekapData.map(r=>[r.name,r.nim,r.kelas,r.hadir,r.izin,r.sakit,r.alpa,r.pct+'%'].map(esc).join(','));
+    csv='\uFEFF'+[header.map(esc).join(','), ...rows].join('\r\n');
+  }
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='rekap-absensi-'+subject.replace(/[^a-zA-Z0-9]/g,'_')+(rekapMode==='grid'?'-grid':'-ringkasan')+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('CSV berhasil diunduh');
+};
 
 /* ANNOUNCEMENTS */
 async function rAnn(){

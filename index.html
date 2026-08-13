@@ -176,7 +176,9 @@
     .sosmed-links{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap}
     .sosmed-btn{display:flex;align-items:center;gap:.55rem;padding:.6rem 1.25rem;border-radius:8px;text-decoration:none;font-size:.82rem;font-weight:600;border:1px solid var(--glass-border);background:var(--glass-card);backdrop-filter:blur(10px);color:var(--white);transition:transform .2s,border-color .2s,background .2s}
     .sosmed-btn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.3);background:var(--white20)}
-    .sosmed-btn .sico{font-size:1.1rem}
+    .sosmed-btn .sico{font-size:1.1rem}#absen-subject option, #absen-name option{
+  color:#0d1b3e;
+  background:#fff;}
     .sb-ig:hover{border-color:#e1306c;background:rgba(225,48,108,.15)}
     .sb-wa:hover{border-color:#25d366;background:rgba(37,211,102,.1)}
     .sb-yt:hover{border-color:#ff0000;background:rgba(255,0,0,.1)}
@@ -223,6 +225,7 @@
     <li><a href="#pengumuman">Pengumuman</a></li>
     <li><a href="#jadwal">Jadwal</a></li>
     <li><a href="#anggota">Anggota</a></li>
+    <li><a href="#absensi">Absensi</a></li>
     <li><a href="#galeri">Galeri</a></li>
     <li><a href="#dokumen">Dokumen</a></li>
     <li><a href="#voting">Voting</a></li>
@@ -281,6 +284,26 @@
   <div id="members-wrap"><div class="ls"><div class="spin"></div> Memuat...</div></div>
 </section>
 
+<!-- ABSENSI -->
+<section class="sw" id="absensi">
+  <div class="sh"><div class="stag">Kehadiran</div><div class="stitle">Absensi Kelas</div><p class="ssub">Isi kehadiranmu untuk mata kuliah hari ini.</p></div>
+  <div id="absen-wrap" style="max-width:420px">
+    <div class="gc" style="padding:1.3rem;border:1px solid var(--glass-border);border-radius:14px;background:var(--glass-card);backdrop-filter:blur(16px)">
+      <p id="absen-today" style="font-size:.82rem;color:rgba(255,255,255,.55);margin-bottom:1rem"></p>
+      <div style="margin-bottom:.9rem">
+        <label style="display:block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:.4rem">Mata Kuliah</label>
+        <select id="absen-subject" style="width:100%;background:rgba(255,255,255,.06);color:#fff;border:1px solid var(--glass-border);border-radius:8px;padding:.6rem .7rem;font-size:.85rem"></select>
+      </div>
+      <div style="margin-bottom:1.1rem">
+        <label style="display:block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:.4rem">Nama Kamu</label>
+        <select id="absen-name" style="width:100%;background:rgba(255,255,255,.06);color:#fff;border:1px solid var(--glass-border);border-radius:8px;padding:.6rem .7rem;font-size:.85rem"></select>
+      </div>
+      <button class="btn-ghost" style="width:100%;text-align:center;cursor:pointer" onclick="submitAbsen()">✓ Hadir Sekarang</button>
+      <p id="absen-msg" style="margin-top:.8rem;font-size:.8rem;text-align:center"></p>
+    </div>
+  </div>
+</section>
+
 <!-- GALERI -->
 <section class="sw" id="galeri">
   <div class="sh"><div class="stag">Momen Kelas</div><div class="stitle">Galeri Foto</div><p class="ssub">Kenangan dan dokumentasi kegiatan Class A/C '25.</p></div>
@@ -313,7 +336,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, updateDoc, getDoc, orderBy, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, updateDoc, getDoc, orderBy, query, onSnapshot, where, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const app = initializeApp({
   apiKey:"AIzaSyCews7iQRZVvGkQhCEKf1ZE4Qidv8mDzyk",
   authDomain:"class-akuntansi.firebaseapp.com",
@@ -529,7 +552,56 @@ window.closeLb = function() {
   document.getElementById('lightbox').classList.remove('open');
 };
 
-loadAnn(); loadSchedules(); loadMembers(); loadDocs(); loadGallery(); loadVoting();
+/* ABSENSI */
+function dayNameID(){
+  const names=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  return names[new Date().getDay()];
+}
+function todayStrID(){
+  const d=new Date(); const off=d.getTimezoneOffset();
+  return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
+}
+function initAbsen(){
+  const tryFill=()=>{
+    if(!schedules.length || !allMembers.length){ setTimeout(tryFill,300); return; }
+    const day=dayNameID();
+    const subs=schedules.filter(s=>s.day===day).sort((a,b)=>a.time.localeCompare(b.time));
+    const subjSel=document.getElementById('absen-subject');
+    const nameSel=document.getElementById('absen-name');
+    document.getElementById('absen-today').textContent='Hari ini: '+day+', '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+    if(!subs.length){
+      subjSel.innerHTML='<option value="">Tidak ada mata kuliah hari ini</option>';
+      subjSel.disabled=true;
+    } else {
+      subjSel.disabled=false;
+      subjSel.innerHTML=subs.map(s=>`<option value="${s.subject}">${s.time} · ${s.subject}</option>`).join('');
+    }
+    const sortedMembers=[...allMembers].sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    nameSel.innerHTML='<option value="">Pilih nama...</option>'+sortedMembers.map(m=>`<option value="${(m.nim||'').replace(/"/g,'&quot;')}" data-name="${(m.name||'').replace(/"/g,'&quot;')}" data-kelas="${(m.kelas||'').replace(/"/g,'&quot;')}">${m.name}</option>`).join('');
+  };
+  tryFill();
+}
+window.submitAbsen=async function(){
+  const subjSel=document.getElementById('absen-subject');
+  const nameSel=document.getElementById('absen-name');
+  const msg=document.getElementById('absen-msg');
+  const subject=subjSel.value;
+  const nim=nameSel.value;
+  if(!subject){ msg.style.color='#f16a5c'; msg.textContent='Tidak ada mata kuliah untuk diabsen hari ini.'; return; }
+  if(!nim){ msg.style.color='#f16a5c'; msg.textContent='Pilih nama kamu dulu.'; return; }
+  const opt=nameSel.selectedOptions[0];
+  const name=opt.dataset.name, kelas=opt.dataset.kelas;
+  const date=todayStrID();
+  const id=(date+'_'+subject+'_'+nim).replace(/[^a-zA-Z0-9_-]/g,'_');
+  try{
+    await setDoc(doc(db,'attendance',id),{date,day:dayNameID(),subject,nim,name,kelas,status:'hadir',markedBy:'self',updatedAt:serverTimestamp()},{merge:true});
+    msg.style.color='#4ade80'; msg.textContent='✓ Absensi tercatat, terima kasih '+name+'!';
+  }catch(e){
+    msg.style.color='#f16a5c'; msg.textContent='Gagal mencatat absensi, coba lagi.';
+  }
+};
+
+loadAnn(); loadSchedules(); loadMembers(); loadDocs(); loadGallery(); loadVoting(); initAbsen();
 </script>
 </body>
 </html>
